@@ -2,83 +2,49 @@
 #include <string.h>
 #include <ctype.h>
 
-void calcClass(char *ipAddr, char *class)
+void calcClass(char *ipAddr, char *class, int *error)
 {
     //Calculate class from IP Address
     int block1;
     sscanf(ipAddr, "%d", &block1);
-    if(block1 >= 1 && block1 <= 127)
+    if(block1 >= 0 && block1 <= 127) 
         *class = 'A';
-    else if(block1 >= 128 && block1 <= 191)
+    else if(block1 >= 128 && block1 <= 191) 
         *class = 'B';
     else if(block1 >= 192 && block1 <= 223)
         *class = 'C';
+    else if(block1 >= 224 && block1 <= 239)
+        *class = 'D';
+    else if(block1 >= 240 && block1 <= 255)
+        *class = 'E';
     else
-        printf("Invalid IP Address\n");
-}
-
-int checkCidrClass(char class, int cidr)
-{
-    //Check if CIDR is valid for the class
-    switch(class)
     {
-        case 'A':
-            if(cidr < 8 || cidr > 30) //30 as 2 addresses are reserved for network and broadcast
-                return 1;
-            break;
-        case 'B':
-            if(cidr < 16 || cidr > 30)
-                return 1;
-            break;
-        case 'C':
-            if(cidr < 24 || cidr > 30)
-                return 1;
-            break;
-        default:
-            return 0;
+        printf("Invalid IP Address\n");
+        *error = 1;
     }
-    return 0;
 }
 
 char* calcnetmask(int cidr)
 {
-    //Calculate netmask from CIDR
     static char netmask[16];
-    int block1, block2, block3, block4;
-    //Convert CIDR to netmask
-    if(cidr == 8)
-    {
-        block1 = 255;  //256 - (1 << (8 - cidr))
-        block2 = 0;
-        block3 = 0;
-        block4 = 0;
+    int octets[4] = {0, 0, 0, 0}; 
+    int fullOctets = cidr / 8; //Number of full octets (each with 8 bits)
+    int remainingBits = cidr % 8; //Remaining bits in next octet
+
+    //Set full octets to 255
+    for (int i = 0; i < fullOctets; i++) {
+        octets[i] = 255;
     }
-    else if(cidr <= 16)
-    {
-        block1 = 255;
-        block2 = 256 - (1 << (16 - cidr));
-        block3 = 0;
-        block4 = 0;
-    }
-    else if(cidr <= 24)
-    {
-        block1 = 255;
-        block2 = 255;
-        block3 = 256 - (1 << (24 - cidr));
-        block4 = 0;
-    }
-    else
-    {
-        block1 = 255;
-        block2 = 255;
-        block3 = 255;
-        block4 = 256 - (1 << (32 - cidr));
-    }
-    sprintf(netmask, "%d.%d.%d.%d", block1, block2, block3, block4);
+
+    //Set remaining bits in next octet
+    if (remainingBits > 0)
+        octets[fullOctets] = (256 - (1 << (8 - remainingBits)));
+
+    sprintf(netmask, "%d.%d.%d.%d", octets[0], octets[1], octets[2], octets[3]);
     return netmask;
 }
 
-void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange)
+void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int *error)
 {
     int ipBlock1, ipBlock2, ipBlock3, ipBlock4;
     sscanf(ipAddr, "%d.%d.%d.%d", &ipBlock1, &ipBlock2, &ipBlock3, &ipBlock4);
@@ -103,164 +69,139 @@ void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, 
     sprintf(broadCAddr, "%d.%d.%d.%d", broadBlock1, broadBlock2, broadBlock3, broadBlock4);
 
     //Calculate usable range 
-    if(netBlock4 == 255)
+    netBlock4++;
+    if(netBlock4 == 256) 
     {
-        if(netBlock3 == 255)
+        netBlock4 = 0;
+        netBlock3++;
+        if(netBlock3 == 256) 
         {
-            if(netBlock2 == 255)
+            netBlock3 = 0;
+            netBlock2++;
+            if(netBlock2 == 256) 
             {
-                if(netBlock1 == 255)
+                netBlock2 = 0;
+                netBlock1++;
+                if(netBlock1 == 256) 
                 {
-                    printf("No usable range\n");
-                }
-                else
-                {
-                    netBlock1++;
-                    netBlock2 = 0;
-                    netBlock3 = 0;
-                    netBlock4 = 0;
+                    printf("Error: Network address out of range\n");
+                    *error = 1;
+                    return;
                 }
             }
-            else
-            {
-                netBlock2++;
-                netBlock3 = 0;
-                netBlock4 = 0;
-            }
         }
-        else
-        {
-            netBlock3++;
-            netBlock4 = 0;
-        }
-    }
-    else
-    {
-        netBlock4++;
     }
 
-    if(broadBlock4 == 0)
+    broadBlock4--;
+    if(broadBlock4 == -1) 
     {
-        if(broadBlock3 == 0)
+        broadBlock4 = 255;
+        broadBlock3--;
+        if(broadBlock3 == -1) 
         {
-            if(broadBlock2 == 0)
+            broadBlock3 = 255;
+            broadBlock2--;
+            if(broadBlock2 == -1) 
             {
-                if(broadBlock1 == 0)
+                broadBlock2 = 255;
+                broadBlock1--;
+                if(broadBlock1 == -1) 
                 {
-                    printf("No usable range\n");
-                }
-                else
-                {
-                    broadBlock1--;
-                    broadBlock2 = 255;
-                    broadBlock3 = 255;
-                    broadBlock4 = 255;
+                    printf("Error: Broadcast address out of range\n");
+                    *error = 1;
+                    return;
                 }
             }
-            else
-            {
-                broadBlock2--;
-                broadBlock3 = 255;
-                broadBlock4 = 255;
-            }
-        }
-        else
-        {
-            broadBlock3--;
-            broadBlock4 = 255;
         }
     }
-    else
-    {
-        broadBlock4--;
-    }
-
     sprintf(usableRange, "%d.%d.%d.%d - %d.%d.%d.%d", netBlock1, netBlock2, netBlock3, netBlock4, broadBlock1, broadBlock2, broadBlock3, broadBlock4);
 }
 
-void calcSubs(char class, int cidr, int *subnetptr)
+void calcSubs(char class, int cidr, int *subnets)
 {
     //Calculate number of subnets
     switch(class)
     {
         case 'A':
-            *subnetptr = 1 << (cidr - 8); //8 is the minimum CIDR for Class A subnetting
+            *subnets = 1 << (cidr - 8); //8 is the minimum CIDR for Class A subnetting
             break;
         case 'B':
-            *subnetptr = 1 << (cidr - 16); //16 is the minimum CIDR for Class B subnetting
+            *subnets = 1 << (cidr - 16); //16 is the minimum CIDR for Class B subnetting
             break;
         case 'C':
-            *subnetptr = 1 << (cidr - 24); //24 is the minimum CIDR for Class C subnetting
-            break; 
+            *subnets = 1 << (cidr - 24); //24 is the minimum CIDR for Class C subnetting
+            break;
+        case 'D':
+        case 'E':
+            *subnets = 0;
+            break;
     }
 }
 
-int main()
-{
-    int cidr;
-    int hosts, subnets;
-    int *subnetptr = &subnets;
-    char ipAddr[16];
-    char netAddr[16];
-    char broadCAddr[16];
-    char netmask[16];
-    char usableRange[34];
-    char class;
-    while(1)
-    {
-        printf("Enter Class (A, B, C) (press q to quit, x for automatic mode): \n");
+void readInput(char *ipAddr, int *cidr, int *error) {
+    printf("Enter IP Address: \n");
+    scanf("%s", ipAddr);
+    if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7) {
+        printf("Invalid IP Address\n");
+        *error = 1;
+        return;
+    }
+
+    printf("Enter CIDR: \n");
+    scanf("%2d", cidr);
+    if(*cidr < 8 || *cidr > 30) {
+        printf("Invalid CIDR or too few usable hosts\n");
+        *error = 1;
+        return;
+    }
+}
+
+void displayResults(char class, char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int subnets) {
+    printf("Class %c\n", class);
+    printf("IP Address: %s\n", ipAddr);
+    printf("Netmask: %s\n", calcnetmask(cidr));
+    printf("Network Address: %s\n", netAddr);
+    printf("Broadcast Address: %s\n", broadCAddr);
+    printf("Usable Range: %s\n", usableRange);
+    printf("Number of Hosts: %d usable: %d\n", 1 << (32 - cidr), (1 << (32 - cidr)) - 2);
+    if(class == 'D')
+        printf("Class D is reserved for multicast\n");
+    else if (class == 'E')
+        printf("Class E is reserved for experimental use\n");
+    else if(subnets < 2)
+        printf("No Subnets, default network only\n");
+    else
+        printf("Number of Subnets: %d\n", subnets);
+}
+
+int main() {
+    int cidr, subnets;
+    int error = 0;
+    char ipAddr[16], netAddr[16], broadCAddr[16], usableRange[34], class;
+
+    while(1) {
+        printf("Press C to continue or Q to quit\n");
         scanf(" %c", &class);
         class = toupper(class);
-        switch(class)
+        if(class == 'Q') return 0;
+        if(class != 'C') 
         {
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'X':
-                break;
-            case 'Q':
-                return 0;
-            default:
-                printf("Invalid Class\n");
-                continue;
-        }
-
-        printf("Enter IP Address: \n");
-        scanf("%s", ipAddr);
-        if(strlen(ipAddr)>15 || strlen(ipAddr)<7)
-        {
-            printf("Invalid IP Address\n");
+            printf("Invalid Input\n");
             continue;
         }
 
-        if(class == 'X')
-            calcClass(ipAddr, &class);
+        readInput(ipAddr, &cidr, &error);
+        if(error) continue;
 
-        printf("Enter CIDR: \n");
-        scanf("%2d", &cidr);
-        if(checkCidrClass(class, cidr) == 1)
-        {
-            printf("Invalid CIDR for Class %c or too few usable hosts\n", class);
-            continue;
-        }
+        calcClass(ipAddr, &class, &error);
+        if(error) continue;
 
-        printf("Class %c\n", class);
-        printf("IP Address: %s\n", ipAddr);
-        strcpy(netmask,calcnetmask(cidr));
-        printf("Netmask: %s\n", netmask);
+        calcNetBroadRange(ipAddr, cidr, netAddr, broadCAddr, usableRange, &error);
+        if(error) continue;
+
+        calcSubs(class, cidr, &subnets);
         
-        printf("Number of Hosts: %d usable: %d\n", 1 << (32 - cidr), (1 << (32 - cidr)) - 2); // 2 subtracted for network and broadcast address
-
-        calcNetBroadRange(ipAddr, cidr, netAddr, broadCAddr, usableRange);
-        printf("Network Address: %s\n", netAddr);
-        printf("Broadcast Address: %s\n", broadCAddr);
-        printf("Usable Range: %s\n", usableRange);
-
-        calcSubs(class, cidr, subnetptr);
-        if(subnets < 2)
-            printf("No Subnets, default network only\n");
-        else
-            printf("Number of Subnets: %d\n", subnets);
+        displayResults(class, ipAddr, cidr, netAddr, broadCAddr, usableRange, subnets);
     }
     return 0;
 }
