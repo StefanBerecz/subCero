@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 char* calcnetmask(int cidr)
 {
@@ -41,26 +42,49 @@ char* calcnetmask(int cidr)
 int main()
 {
     // Main Code missing:
-    //string for netmask
-    //scan
-    //ausgabe auf konsole
+    //Broadcast address
+    //Network address
+    //Host range
+    //Class A and B
+    //separate functions for each class
 
     int cidr;
+    char ipAddr[16];
     char netmask[16];
+    char class;
     while(1)
     {
-        printf("Enter CIDR: \n");
-        scanf("%2d", &cidr);
-        if(cidr < 0 || cidr > 32)
+        printf("Enter Class (A, B, C): \n");
+        scanf(" %c", &class);
+        if(class != 'A' && class != 'B' && class != 'C' && class != 'a' && class != 'b' && class != 'c')
         {
-            printf("Invalid CIDR\n");
+            printf("Invalid Class\n");
             break;
         }
-        else 
+        class = toupper(class);
+
+        printf("Enter IP Address: \n");
+        scanf("%s", ipAddr);
+        if(strlen(ipAddr)>15 || strlen(ipAddr)<7)
         {
-            strcpy(netmask,calcnetmask(cidr)); 
-            printf("Netzmask: %s\n", netmask);
+            printf("Invalid IP Address\n");
+            break;
         }
+
+        printf("Enter CIDR: \n");
+        scanf("%2d", &cidr);
+        if(cidr < 24 || cidr > 32)
+        {
+            printf("Invalid CIDR for Class C\n");
+            break;
+        }
+        printf("Class %c\n", class);
+        printf("IP Address: %s\n", ipAddr);
+        strcpy(netmask,calcnetmask(cidr));
+        printf("Netmask: %s\n", netmask);
+        printf("Number of Hosts: %d usable: %d\n", 1 << (32 - cidr), (1 << (32 - cidr)) - 2); // 2 subtracted for network and broadcast address
+        printf("Number of Subnets: %d\n", 1 << (cidr - 24)); //24 is the minimum CIDR for subnetting
+
     }
     return 0;
 }
