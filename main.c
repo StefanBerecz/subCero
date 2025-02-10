@@ -140,7 +140,7 @@ void calcSubs(char class, int cidr, int *subnets)
 
 void readInput(char *ipAddr, int *cidr, int *error) {
     printf("Enter IP Address: \n");
-    scanf("%s", ipAddr);
+    scanf(" %15s", ipAddr);
     if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7) {
         printf("Invalid IP Address\n");
         *error = 1;
