@@ -31,6 +31,7 @@ int main() {
         calcSubs(netClass, cidr, &subnets);
         
         displayResults(netClass, ipAddr, cidr, netAddr, broadCAddr, usableRange, subnets);
+        saveResults(netClass, ipAddr, cidr, netAddr, broadCAddr, usableRange, subnets);
     }
     return 0;
 }
