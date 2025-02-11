@@ -1,5 +1,5 @@
 # subCero
-Your subnetting hero written in C
+Your subnetting h**ero** written in C
 
 ## Features
 - Calculates infos based on IP and CIDR:
@@ -18,6 +18,29 @@ Your subnetting hero written in C
 - IPv6 support
 - Statistics and permanent storage
 - Graphical User Interface (eventually) 
+
+## Usage
+To use this program, follow these steps:
+
+1. **Clone the repository**:
+    ```sh
+    git clone https://github.com/StefanBerecz/subCero.git
+    cd subCero
+    ```
+
+2. **Compile the program**:
+    ```sh
+    gcc main.c calculations.c inOut.c -o main.out
+    ```
+
+3. **Run the program**:
+    ```sh
+    ./main.out
+    ```
+
+4. **Follow the prompts**: 
+    - Enter the IP address and CIDR notation when prompted.
+    - Review the detailed subnetting information provided by the program.
 
 ## Notice
 >[!NOTE] 
