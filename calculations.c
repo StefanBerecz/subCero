@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "calculations.h"
 
-void calcClass(char *ipAddr, char *netClass, int *error)
+void calcClass(char *ipAddr, char *netClass, int *error, int *errorSession)
 {
     //Calculate class from IP Address
     int block1;
@@ -19,7 +19,8 @@ void calcClass(char *ipAddr, char *netClass, int *error)
     else
     {
         printf("Invalid IP Address\n");
-        *error = 1;
+        (*errorSession)++;
+        (*error)++;
     }
 }
 
@@ -43,7 +44,7 @@ char* calcnetmask(int cidr)
     return netmask;
 }
 
-void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int *error)
+void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int *error, int *errorSession)
 {
     int ipBlock1, ipBlock2, ipBlock3, ipBlock4;
     sscanf(ipAddr, "%d.%d.%d.%d", &ipBlock1, &ipBlock2, &ipBlock3, &ipBlock4);
@@ -84,7 +85,8 @@ void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, 
                 if(netBlock1 == 256) 
                 {
                     printf("Error: Network address out of range\n");
-                    *error = 1;
+                    (*errorSession)++;
+                    (*error)++;
                     return;
                 }
             }
@@ -107,7 +109,8 @@ void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, 
                 if(broadBlock1 == -1) 
                 {
                     printf("Error: Broadcast address out of range\n");
-                    *error = 1;
+                    (*errorSession)++;
+                    (*error)++;
                     return;
                 }
             }

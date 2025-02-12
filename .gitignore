@@ -38,6 +38,7 @@
 
 # Saved files
 results.txt
+saves.txt
 
 # Debug files
 *.dSYM/
