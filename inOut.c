@@ -22,7 +22,7 @@ void readFile(int *calcsAlltime, int *errorAllTime)
     fclose(fp);
 }
 
-void readInput(char *ipAddr, int *cidr, int *error, int *errorSession) {
+void readInputIP(char *ipAddr, int *error, int *errorSession) {
     printf("Enter IP Address: \n");
     scanf(" %15s", ipAddr);
 
@@ -40,20 +40,39 @@ void readInput(char *ipAddr, int *cidr, int *error, int *errorSession) {
         (*error)++;
         return;
     }
+}
 
+void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession) {
     printf("Enter CIDR: \n");
     scanf("%2d", cidr);
-    if(*cidr < 8 || *cidr > 30) {
-        printf("Invalid CIDR or too few usable hosts\n");
+
+    int minCIDR;
+    switch(netClass) {
+        case 'A':
+            minCIDR = 8;
+            break;
+        case 'B':
+            minCIDR = 16;
+            break;
+        case 'C':
+            minCIDR = 24;
+            break;
+        default:
+            minCIDR = 0;
+            break;
+    }
+
+    if(*cidr < minCIDR || *cidr > 30) {
+        printf("You entered a class %c address. For a usable class %c network CIDR should be between %d and 30\n", netClass, netClass, minCIDR);
         (*errorSession)++;
         (*error)++;
         return;
     }
 }
 
-void displayStats(int calcsAlltime, int errorAlltime, int calcSession, int error)
+void displayStats(int calcsAlltime, int errorAlltime, int calcSession, int errorSession)
 {
-    printf("Calculations this Session: %d\nCalculations all time: %d\nErrors this Session: %d\nErrors all time: %d\n", calcSession, calcsAlltime, error, errorAlltime);
+    printf("Calculations this Session: %d\nCalculations all time: %d\nErrors this Session: %d\nErrors all time: %d\n", calcSession, calcsAlltime, errorSession, errorAlltime);
 }
 
 void displayResults(char netClass, char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int subnets) 

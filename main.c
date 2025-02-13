@@ -27,17 +27,20 @@ int main() {
                 saveStats(calcAllTime, errorAllTime, calcSession, error);
                 return 0;
             case 'S':
-                displayStats(calcAllTime, errorAllTime, calcSession, error);
+                displayStats(calcAllTime, errorAllTime, calcSession, errorSession);
                 continue;
             default:
                 printf("Invalid Input\n");
                 continue;
         }
 
-        readInput(ipAddr, &cidr, &error, &errorSession);
+        readInputIP(ipAddr, &error, &errorSession);
         if(error != 0) continue;
 
         calcClass(ipAddr, &netClass, &error, &errorSession);
+        if(error != 0) continue;
+
+        readInputCIDR(&cidr, netClass, &error, &errorSession);
         if(error != 0) continue;
 
         calcNetBroadRange(ipAddr, cidr, netAddr, broadCAddr, usableRange, &error, &errorSession);
