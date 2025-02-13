@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "calculations.h"
 
+//Calculate network class from IP Address
 void calcClass(char *ipAddr, char *netClass, int *error, int *errorSession)
 {
-    //Calculate class from IP Address
     int block1;
     sscanf(ipAddr, "%d", &block1);
     if(block1 >= 0 && block1 <= 127) 
@@ -24,6 +24,7 @@ void calcClass(char *ipAddr, char *netClass, int *error, int *errorSession)
     }
 }
 
+//Calculate netmask from CIDR
 char* calcnetmask(int cidr)
 {
     static char netmask[16];
@@ -44,6 +45,7 @@ char* calcnetmask(int cidr)
     return netmask;
 }
 
+//Calculate network address, broadcast address and usable hosts range
 void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int *error, int *errorSession)
 {
     int ipBlock1, ipBlock2, ipBlock3, ipBlock4;
@@ -119,6 +121,7 @@ void calcNetBroadRange(char *ipAddr, int cidr, char *netAddr, char *broadCAddr, 
     sprintf(usableRange, "%d.%d.%d.%d - %d.%d.%d.%d", netBlock1, netBlock2, netBlock3, netBlock4, broadBlock1, broadBlock2, broadBlock3, broadBlock4);
 }
 
+//Calculate number of subnets
 void calcSubs(char netClass, int cidr, int *subnets)
 {
     //Calculate number of subnets

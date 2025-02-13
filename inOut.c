@@ -3,6 +3,7 @@
 #include <string.h>
 #include "calculations.h"
 
+//Read save file before starting program
 void readFile(int *calcsAlltime, int *errorAllTime)
 {
     FILE *fp;
@@ -13,6 +14,7 @@ void readFile(int *calcsAlltime, int *errorAllTime)
         return;
     }
 
+    //Set values and if file is not in correct format set to 0
     if(fscanf(fp, "Calculations: %d, Errors: %d", calcsAlltime, errorAllTime) != 2)
     {
         printf("Error reading save file\n");
@@ -22,6 +24,7 @@ void readFile(int *calcsAlltime, int *errorAllTime)
     fclose(fp);
 }
 
+//Read IP Address from user
 void readInputIP(char *ipAddr, int *error, int *errorSession) {
     printf("Enter IP Address: \n");
     scanf(" %15s", ipAddr);
@@ -34,6 +37,7 @@ void readInputIP(char *ipAddr, int *error, int *errorSession) {
             blocks++;
     }   
 
+    //Check if IP Address has correct length and number of blocks
     if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7 || blocks != 3) {
         printf("Invalid IP Address\n");
         (*errorSession)++;
@@ -42,6 +46,7 @@ void readInputIP(char *ipAddr, int *error, int *errorSession) {
     }
 }
 
+//Read CIDR from user
 void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession) {
     printf("Enter CIDR: \n");
     scanf("%2d", cidr);
@@ -62,6 +67,7 @@ void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession) {
             break;
     }
 
+    //Check if CIDR is within range for given class
     if(*cidr < minCIDR || *cidr > 30) {
         printf("You entered a class %c address. For a usable class %c network CIDR should be between %d and 30\n", netClass, netClass, minCIDR);
         (*errorSession)++;
@@ -70,11 +76,13 @@ void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession) {
     }
 }
 
+//Display statistics if user inputs S
 void displayStats(int calcsAlltime, int errorAlltime, int calcSession, int errorSession)
 {
     printf("Calculations this Session: %d\nCalculations all time: %d\nErrors this Session: %d\nErrors all time: %d\n", calcSession, calcsAlltime, errorSession, errorAlltime);
 }
 
+//Display results to user after calculations
 void displayResults(char netClass, char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int subnets) 
 {
     printf("Class %c\n", netClass);
@@ -94,6 +102,7 @@ void displayResults(char netClass, char *ipAddr, int cidr, char *netAddr, char *
         printf("Number of Subnets: %d\n", subnets);
 }
 
+//Save results to file after calculations
 void saveResults(char netClass, char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int subnets)
 {
     FILE *fp;
@@ -117,11 +126,12 @@ void saveResults(char netClass, char *ipAddr, int cidr, char *netAddr, char *bro
     else if(subnets < 2)
         fprintf(fp, "No Subnets, default network only\n");
     else
-        fprintf(fp, "Number of Subnets: %d\n", subnets);
+        fprintf(fp, "Number of usable Subnets: %d\n", subnets);
     fprintf(fp, "\n----------------------------------------\n\n");
     fclose(fp);    
 }
 
+//Save statistics to file before new calculation or quitting
 void saveStats(int calcsAlltime, int errorAlltime, int calcSession, int error)
 {
     FILE *fp;
