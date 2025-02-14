@@ -38,7 +38,9 @@
 
 # Saved files
 results.txt
+results.csv
 saves.txt
+saves.csv
 
 # Debug files
 *.dSYM/

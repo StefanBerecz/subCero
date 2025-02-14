@@ -25,29 +25,53 @@ void readFile(int *calcsAlltime, int *errorAllTime)
 }
 
 //Read IP Address from user
-void readInputIP(char *ipAddr, int *error, int *errorSession) {
+void readInputIP(char *ipAddr, int *error, int *errorSession)
+{
     printf("Enter IP Address: \n");
-    scanf(" %15s", ipAddr);
+    scanf(" %39s", ipAddr);
 
-    //Check if IP Address consists of 4 blocks
-    int blocks = 0;
-    for(int i = 0; i < strlen(ipAddr); i++)
+    if(strchr(ipAddr, ':') != NULL)
     {
-        if(ipAddr[i] == '.')
-            blocks++;
-    }   
+        int blocks = 1;
+        for(int i = 0; i < strlen(ipAddr); i++)
+        {
+            if(ipAddr[i] == ':')
+                blocks++;
+        }
 
-    //Check if IP Address has correct length and number of blocks
-    if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7 || blocks != 3) {
-        printf("Invalid IP Address\n");
-        (*errorSession)++;
-        (*error)++;
-        return;
+        if(strlen(ipAddr) > 39 || strlen(ipAddr) < 2 || blocks != 8)
+        {
+            printf("Invalid IPv6 Address\n");
+            (*errorSession)++;
+            (*error)++;
+            return;
+        }
+    }
+    else
+    {
+        //Check if IP Address consists of 4 blocks
+        int blocks = 1;
+
+        for(int i = 0; i < strlen(ipAddr); i++)
+        {
+            if(ipAddr[i] == '.')
+                blocks++;
+        }   
+
+        //Check if IP Address has correct length and number of blocks
+        if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7 || blocks != 4) {
+            printf("Invalid IP Address\n");
+            (*errorSession)++;
+            (*error)++;
+            return;
+        }
     }
 }
 
+
 //Read CIDR from user
-void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession) {
+void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession)
+{
     printf("Enter CIDR: \n");
     scanf("%2d", cidr);
 
