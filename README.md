@@ -15,9 +15,11 @@ Your subnetting h**ero** written in C
 - Detailed output with all relevant subnetting information
 
 ## Planned
-- IPv6 support
 - Statistics and permanent storage
 - Graphical User Interface (eventually) 
+
+## Not planned
+- IPv6 support (Due to the complexity and the different approach required for IPv6 subnetting, this program focuses on IPv4 to keep it simple and educational)
 
 ## Usage
 To use this program, follow these steps:

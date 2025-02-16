@@ -37,10 +37,8 @@
 *.hex
 
 # Saved files
-results.txt
-results.csv
-saves.txt
-saves.csv
+data.csv
+stats.csv
 
 # Debug files
 *.dSYM/

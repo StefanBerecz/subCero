@@ -3,15 +3,24 @@
 #include "calculations.h"
 #include "inOut.h"
 
-int main() {
-    int cidr, subnets;
-    int calcSession = 0;
-    int calcAllTime = 0;
-    int error = 0; //Error counter for termination conditions
-    int errorSession = 0; // Error counter for session
-    int errorAllTime = 0; 
-    readFile(&calcAllTime, &errorAllTime); //Read all time calculations and errors
-    char ipAddr[16], netAddr[16], broadCAddr[16], usableRange[34], netClass;
+typedef struct
+{
+    int ID;
+    int cidr;
+    int ipVersion;
+    int subnets;
+    int calcSession;
+    int calcAllTime;
+    int error; //Error counter for termination conditions
+    int errorSession; // Error counter for session
+    int errorAllTime;
+
+} CalculationData;
+
+int main() { 
+    CalculationData data = {0, 0, 0, 0, 0, 0, 0, 0}; //Initialize struct
+    char ipAddr[40], netAddr[16], broadCAddr[16], usableRange[34], netClass;
+    readFile(&data.calcAllTime, &data.errorAllTime, &data.ID); //Read all time calculations, errors and ID from csv files
 
     while(1) {
         printf("Press C to continue, S for statistics or Q to quit\n");
@@ -20,42 +29,54 @@ int main() {
         switch(netClass)
         {
             case 'C':
-                //Save stats so errors are saved correctly before resetting
-                saveStats(calcAllTime, errorAllTime, calcSession, error);
-                error = 0;
+                data.error = 0; //Reset error counter for termination conditions
                 break;
             case 'Q':
-                saveStats(calcAllTime, errorAllTime, calcSession, error);
+                //Save all time calculations and errors to file
+                saveStats(data.calcAllTime, data.errorAllTime, data.calcSession, data.errorSession);
                 return 0;
             case 'S':
-                displayStats(calcAllTime, errorAllTime, calcSession, errorSession);
+                displayStats(data.calcAllTime, data.errorAllTime, data.calcSession, data.errorSession);
                 continue;
             default:
                 printf("Invalid Input\n");
                 continue;
         }
 
-        readInputIP(ipAddr, &error, &errorSession);
-        if(error != 0) continue;
+        readInputIP(ipAddr, &data.error, &data.errorSession, &data.ipVersion);
+        if(data.error != 0) continue;
 
-        //Calculate class from IP Address before CIDR to validate CIDR
-        calcClass(ipAddr, &netClass, &error, &errorSession);
-        if(error != 0) continue;
+        if(data.ipVersion == 4)
+        {
+            //Calculate class from IP Address before CIDR to validate CIDR
+            calcClass(ipAddr, &netClass, &data.error, &data.errorSession);
+            if(data.error != 0) continue;
+            
+            readInputCIDR(&data.cidr, netClass, &data.error, &data.errorSession);
+
+            //Calculate network address, broadcast address and usable hosts range
+            calcNetBroadRange(ipAddr, data.cidr, netAddr, broadCAddr, usableRange, &data.error, &data.errorSession);
+            if(data.error != 0) continue;
+
+            //Calculate number of usable subnets
+            calcSubs(netClass, data.cidr, &data.subnets);
+            if(data.error != 0) continue;
+            
+            data.calcSession++; //Increment calculations this session
+
+        }
+
+        if(data.ipVersion == 6)
+        {
+            data.errorSession++;
+            data.error++;
+        }
         
-        readInputCIDR(&cidr, netClass, &error, &errorSession);
-        if(error != 0) continue;
+        displayResults(data.ipVersion, netClass, ipAddr, data.cidr, netAddr, broadCAddr, usableRange, data.subnets);
+        if(data.error != 0) continue;
 
-        //Calculate network address, broadcast address and usable hosts range
-        calcNetBroadRange(ipAddr, cidr, netAddr, broadCAddr, usableRange, &error, &errorSession);
-        if(error != 0) continue;
-
-        //Calculate number of usable subnets
-        calcSubs(netClass, cidr, &subnets);
-        
-        calcSession++; //Increment calculations this session
-
-        displayResults(netClass, ipAddr, cidr, netAddr, broadCAddr, usableRange, subnets);
-        saveResults(netClass, ipAddr, cidr, netAddr, broadCAddr, usableRange, subnets);
+        saveData(data.ID, ipAddr, data.cidr, netClass, netAddr, broadCAddr, usableRange, data.subnets);
+        data.ID++;
     }
     return 0;
 }
