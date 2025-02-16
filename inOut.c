@@ -2,14 +2,14 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "calculations.h"
 
 //Read save file before starting program
 void readFile(int *calcsAlltime, int *errorAllTime, int *ID)
 {
     //Read calculations and errors from file
-    FILE *fp;
-    fp = fopen("stats.csv", "r");
+    FILE *fp = fopen("stats.csv", "r");
     if(fp == NULL)
     {
         printf("Save file not found. New save file will be created\n");
@@ -177,13 +177,32 @@ void readInputIP(char *ipAddr, int *error, int *errorSession, int *ipVersion)
                 blocks++;
         }   
 
+
         //Check if IP Address has correct length and number of blocks
-        if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7 || blocks != 4) {
+        if(strlen(ipAddr) > 15 || strlen(ipAddr) < 7 || blocks != 4) 
+        {
             printf("Invalid IP Address\n");
             (*errorSession)++;
             (*error)++;
             return;
         }
+
+        // Check if each block is between 0 and 255
+        int block;
+        char *token = strtok(ipAddr, ".");
+        while (token != NULL)
+        {
+            block = atoi(token); //Convert block to integer
+            if (block < 0 || block > 255)
+            {
+                printf("Invalid IP Address\n");
+                (*errorSession)++;
+                (*error)++;
+                return;
+            }
+            token = strtok(NULL, ".");
+        }
+
         (*ipVersion) = 4;
     }
 }
@@ -226,10 +245,16 @@ void displayStats(int calcsAlltime, int errorAlltime, int calcSession, int error
     printf("\n--------------------------------------------\n");
     printf("Calculations this Session: %d\nCalculations all time: %d\nErrors this Session: %d\nErrors all time: %d\n", calcSession, calcsAlltime += calcSession, errorSession, errorAlltime += errorSession);
     //Most common network class
+    char mostClass = 'X';
+    mostClass = mostCommonClass();
+    if(mostClass == 'X')
+        printf("No data saved\n");
+    else
+        printf("Most common network class: %c\n", mostCommonClass());
     
+    printf("--------------------------------------------\n\n");
     //Rudimentary statistics
     //Might be expanded in future
-    printf("--------------------------------------------\n\n");
 }
 
 //Display results to user after calculations
@@ -266,8 +291,7 @@ void displayResults(int ipVersion ,char netClass, char *ipAddr, int cidr, char *
 void saveData(int ID, char *ipAddr, int cidr, char netClass, char *netAddr, char *broadCAddr, char *usableRange, int subnets)
 {
     //Save calculated data to file
-    FILE *fp;
-    fp = fopen("data.csv", "a");
+    FILE *fp = fopen("data.csv", "a");
     if(fp == NULL)
     {
         printf("Error creating save file. Check permissions\n");
@@ -284,8 +308,7 @@ void saveData(int ID, char *ipAddr, int cidr, char netClass, char *netAddr, char
 
 void saveStats(int calcAllTime, int errorAllTime, int calcSession, int errorSession)
 {
-    FILE *fp;
-    fp = fopen("stats.csv", "w");
+    FILE *fp = fopen("stats.csv", "w");
     if(fp == NULL)
     {
         printf("Error creating save file. Check permissions\n");

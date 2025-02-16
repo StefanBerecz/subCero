@@ -142,3 +142,68 @@ void calcSubs(char netClass, int cidr, int *subnets)
             break;
     }
 }
+
+//Most common network class in saved data (data.csv)
+char mostCommonClass()
+{
+    FILE *fp = fopen("data.csv", "r");
+    if(fp == NULL) 
+    {
+        printf("Error reading save file\n");
+        return 'X';
+    }
+
+    char dataBuffer[100];
+    int classA = 0, classB = 0, classC = 0, classD = 0, classE = 0;
+    while(fgets(dataBuffer, 100, fp) != NULL) 
+    {
+        char netClass;
+        sscanf(dataBuffer, "%*d,%*[^,],%*d,%c,%*[^,],%*[^,],%*[^,],%*d,%*d", &netClass);
+        switch(netClass)
+        {
+            case 'A':
+                classA++;
+                break;
+            case 'B':
+                classB++;
+                break;
+            case 'C':
+                classC++;
+                break;
+            case 'D':
+                classD++;
+                break;
+            case 'E':
+                classE++;
+                break;
+        }
+    }
+
+    fclose(fp);
+
+    int maxCount = classA;
+    char mostClass = 'A';
+
+    if(classB > maxCount) 
+    {
+        maxCount = classB;
+        mostClass = 'B';
+    }
+    if(classC > maxCount) 
+    {
+        maxCount = classC;
+        mostClass = 'C';
+    }
+    if(classD > maxCount) 
+    {
+        maxCount = classD;
+        mostClass = 'D';
+    }
+    if(classE > maxCount) 
+    {
+        maxCount = classE;
+        mostClass = 'E';
+    }
+
+    return mostClass;
+}
