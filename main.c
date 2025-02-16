@@ -23,14 +23,22 @@ int main() {
     readFile(&data.calcAllTime, &data.errorAllTime, &data.ID); //Read all time calculations, errors and ID from csv files
 
     while(1) {
-        printf("Press C to continue, S for statistics or Q to quit\n");
-        scanf(" %c", &netClass);
-        netClass = toupper(netClass);
-        switch(netClass)
+        char input;
+        printf("Press C to continue, S for statistics, B for basic mode, M for manual or Q to quit\n");
+        scanf(" %c", &input);
+        input = toupper(input);
+        switch(input)
         {
+            case 'B':
+                data.error = 0; //Reset error counter for termination conditions
+                basicMode(ipAddr, &data.error, &data.errorSession, &data.ipVersion);
+                continue;
             case 'C':
                 data.error = 0; //Reset error counter for termination conditions
                 break;
+            case 'M':
+                readManual();
+                continue;;
             case 'Q':
                 //Save all time calculations and errors to file
                 saveStats(data.calcAllTime, data.errorAllTime, data.calcSession, data.errorSession);
@@ -75,8 +83,8 @@ int main() {
         displayResults(data.ipVersion, netClass, ipAddr, data.cidr, netAddr, broadCAddr, usableRange, data.subnets);
         if(data.error != 0) continue;
 
-        saveData(data.ID, ipAddr, data.cidr, netClass, netAddr, broadCAddr, usableRange, data.subnets);
         data.ID++;
+        saveData(data.ID, ipAddr, data.cidr, netClass, netAddr, broadCAddr, usableRange, data.subnets);
     }
     return 0;
 }

@@ -1,4 +1,5 @@
 #include "inOut.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include "calculations.h"
@@ -67,12 +68,77 @@ void readFile(int *calcsAlltime, int *errorAllTime, int *ID)
     }
 
     // Parse the last line
-    if (sscanf(dataBuffer, "%d,%*[^,],%*d,%*c,%*[^,],%*[^,],%*[^,],%*d", ID) != 1) 
+    if (sscanf(dataBuffer, "%d,%*[^,],%*d,%*c,%*[^,],%*[^,],%*[^,],%*d,%*d", ID) != 1) 
     {
         printf("Error reading save file\n");
         *ID = 0;
     }
     fclose(fp);
+}
+
+void readManual()
+{
+    printf("\n--------------------------------------------\n");
+    printf("This program calculates network information based on IP address and CIDR.\n");
+    printf("You can enter an IP address and CIDR to get the network address, broadcast address, usable range, and number of subnets.\n");
+    printf("Basic mode will only calculate netmask or network class and not save any data.\n");
+    printf("Network classes overview:\n");
+    printf("Class A: 0.0.0.0 - 127.255.255.255\n");
+    printf("Class B: 128.0.0.0 - 191.255.255.255\n");
+    printf("Class C: 192.0.0.0 - 223.255.255.255\n");
+    printf("Class D: 224.0.0.0 - 239.255.255.255 (Multicast)\n");
+    printf("Class E: 240.0.0.0 - 255.255.255.255 (Experimental)\n");
+    printf("--------------------------------------------\n\n");
+}
+
+void basicMode(char *ipAddr, int *error, int *errorSession, int *ipVersion)
+{
+    printf("Basic mode selected. Enter C for network class or N for netmask\n");
+    char input;
+    scanf(" %c", &input);
+    input = toupper(input);
+    if(input == 'C')
+    {
+        printf("\n--------------------------------------------\n");
+        readInputIP(ipAddr, error, errorSession, ipVersion);
+        if(*error != 0) 
+        {
+            //No data will be saved in basic mode
+            (*errorSession)--;
+            (*error)--;
+            return;
+        }
+        char netClass;
+        calcClass(ipAddr, &netClass, error, errorSession);
+        if(*error != 0) 
+        {
+            //No data will be saved in basic mode
+            (*errorSession)--;
+            (*error)--;
+            return;
+        }
+        printf("\nNetwork Class: %c\n", netClass);
+        printf("--------------------------------------------\n\n");
+    }
+    else if(input == 'N')
+    {
+        printf("\n--------------------------------------------\n");
+        int cidr;
+        printf("Enter CIDR: \n");
+        scanf("%2d", &cidr);
+        if(cidr < 1 || cidr > 32)
+        {
+            printf("Invalid CIDR\n");
+            return;
+        }
+        printf("\nNetmask: %s\n", calcnetmask(cidr));
+        printf("--------------------------------------------\n\n");
+    }
+    else
+    {
+        printf("\nInvalid input\n");
+        printf("--------------------------------------------\n");
+    }
 }
 
 //Read IP Address from user
@@ -157,14 +223,19 @@ void readInputCIDR(int *cidr, char netClass, int *error, int *errorSession)
 //Display statistics if user inputs S
 void displayStats(int calcsAlltime, int errorAlltime, int calcSession, int errorSession)
 {
+    printf("\n--------------------------------------------\n");
     printf("Calculations this Session: %d\nCalculations all time: %d\nErrors this Session: %d\nErrors all time: %d\n", calcSession, calcsAlltime += calcSession, errorSession, errorAlltime += errorSession);
+    //Most common network class
+    
     //Rudimentary statistics
     //Might be expanded in future
+    printf("--------------------------------------------\n\n");
 }
 
 //Display results to user after calculations
 void displayResults(int ipVersion ,char netClass, char *ipAddr, int cidr, char *netAddr, char *broadCAddr, char *usableRange, int subnets) 
 {
+    printf("\n--------------------------------------------\n");
     if(ipVersion == 4)
     {
         printf("IPv4 Address\n");
@@ -189,6 +260,7 @@ void displayResults(int ipVersion ,char netClass, char *ipAddr, int cidr, char *
         
             printf("Warning: IPv6 calculations are not supported!\n");
     }
+    printf("--------------------------------------------\n\n");
 }
 
 void saveData(int ID, char *ipAddr, int cidr, char netClass, char *netAddr, char *broadCAddr, char *usableRange, int subnets)
@@ -201,12 +273,12 @@ void saveData(int ID, char *ipAddr, int cidr, char netClass, char *netAddr, char
         printf("Error creating save file. Check permissions\n");
         return;
     }
-
+    int usableHosts = (1 << (32 - cidr)) - 2;
     //If file is empty, add headers
     if(ftell(fp) == 0) 
-        fprintf(fp, "ID,IP Address,CIDR,Class,IP Version,Network Address,Broadcast Address,Usable Range,Subnets\n"); 
+        fprintf(fp, "ID,IP Address,CIDR,Class,Network Address,Broadcast Address,Usable Range,Usable Hosts,Subnets\n"); 
     
-    fprintf(fp, "%d,%s,%d,%c,%s,%s,%s,%d\n", ID, ipAddr, cidr, netClass, netAddr, broadCAddr, usableRange, subnets);
+    fprintf(fp, "%d,%s,%d,%c,%s,%s,%s,%d,%d\n", ID, ipAddr, cidr, netClass, netAddr, broadCAddr, usableRange, usableHosts, subnets);
     fclose(fp);
 }
 
