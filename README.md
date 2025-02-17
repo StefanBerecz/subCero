@@ -13,12 +13,20 @@ Your subnetting h**ero** written in C
 - Features several checks to improve accuracy and reliability
 - User-friendly input prompts and error handling
 - Detailed output with all relevant subnetting information
+- Statistics and permanent storage:
+    - Tracks calculations and errors for the current session and all time
+    - Displays the most common network class from saved data
 
-## Planned
-- Statistics and permanent storage
-- Graphical User Interface (eventually) 
+## Planned Improvements
+- Enhancements to user-friendliness
+- Minor improvements in error handling
+
+### Status
+>[!IMPORTANT]
+>- The program is considered complete for now. No major features are planned, only minor improvements and bug fixes.
 
 ## Not planned
+- Graphical User Interface (Due to the current form of the program, a GUI would require a complete rewrite and is not considered practical)
 - IPv6 support (Due to the complexity and the different approach required for IPv6 subnetting, this program focuses on IPv4 to keep it simple and educational)
 
 ## Usage
